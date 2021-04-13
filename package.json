@@ -1,7 +1,7 @@
 {
   "name": "fatecalc",
-  "version": "1.0.0",
-  "description": "Calculadora para autocorrecao de exercicios matematicos da Fatec.",
+  "version": "0.0.1",
+  "description": "Calculadora para autocorreção de exercícios matemáticos da Fatec.",
   "main": "index.php",
   "dependencies": {
     "mathsteps": "^0.2.0"
