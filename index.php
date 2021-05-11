@@ -20,10 +20,10 @@ require_once __DIR__ . '/php/config.php';
     <!-- Font Awesome JS -->
     <script src="fontawesome/js/all.min.js"></script>
 
-    <title>FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec</title>
-    <script>
+    <!-- MathJax JS -->
+    <script src="node_modules/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
 
-    </script>
+    <title>FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec</title>
 </head>
 
 <body>
@@ -31,14 +31,13 @@ require_once __DIR__ . '/php/config.php';
         <br>
         <h4>Sistemas de Gestão de Produção e Logística</h4>
         <h1>Lote Econômico de Compra</h1>
-        <p>
+        <h4>$$LEC = \sqrt{2*D*cp \over i*v}$$</h4>
         <ul>
             <li>D = Consumo médio</li>
             <li>cp = Custo de aquisição/ordem/pedido</li>
             <li>i = Taxa de juros ou custo de manutenção ou custo de armazenagem/estocagem</li>
             <li>v = Custo/valor unitário</li>
         </ul>
-        </p>
         <br>
         <form>
             <div class="form-row">
@@ -80,7 +79,7 @@ require_once __DIR__ . '/php/config.php';
                 <div class="form-group col-md-2">
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text">=</span>
+                            <span class="input-group-text">LEC</span>
                         </div>
                         <input type="text" class="form-control" id="resultado" disabled>
                     </div>
