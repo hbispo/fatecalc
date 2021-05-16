@@ -24,7 +24,7 @@ require_once __DIR__ . '/php/config.php';
     <script src="node_modules/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
 
     <!-- IMask JS -->
-    <script src="https://unpkg.com/imask"></script>
+    <script src="js/imask.js"></script>
 
     <title>FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec</title>
     <script id="customScript">
