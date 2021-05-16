@@ -23,60 +23,109 @@ require_once __DIR__ . '/php/config.php';
     <!-- MathJax JS -->
     <script src="node_modules/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
 
+    <!-- IMask JS -->
+    <script src="https://unpkg.com/imask"></script>
+
     <title>FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec</title>
+    <script id="customScript">
+        var varResultado = 'LEC';
+        var formula = 'sqrt((2 * D * cp) / (i * v))';
+        var formulaTex = '\\sqrt{ 2 * D * cp \\over i * v }';
+
+        function preTratamento() {
+            if (document.forms[0].elements.DPeriodo.value != document.forms[0].elements.iPeriodo.value) {
+                if (document.forms[0].elements.iPeriodo.value == 'M') {
+                    $('#D')[0].mask.unmaskedValue = ($('#D')[0].mask.typedValue / 12).toString();
+                } else {
+                    $('#D')[0].mask.unmaskedValue = ($('#D')[0].mask.typedValue * 12).toString();
+                }
+                document.forms[0].elements.DPeriodo.value = document.forms[0].elements.iPeriodo.value;
+            }
+            if (document.forms[0].elements.iValor.value == 'P') {
+                if ($('#i')[0].mask.typedValue > 1) {
+                    $('#i')[0].mask.unmaskedValue = ($('#i')[0].mask.typedValue / 100).toString();
+                }
+            } else {
+                $('#i')[0].mask.unmaskedValue = ($('#i')[0].mask.typedValue / $('#v')[0].mask.typedValue).toString();
+                document.forms[0].elements.iValor.value = 'P';
+            }
+            return;
+        }
+    </script>
 </head>
 
 <body>
     <div class="container">
         <br>
-        <h4>Sistemas de Gestão de Produção e Logística</h4>
-        <h1>Lote Econômico de Compra</h1>
-        <h4>$$LEC = \sqrt{2*D*cp \over i*v}$$</h4>
-        <ul>
-            <li>D = Consumo médio</li>
-            <li>cp = Custo de aquisição/ordem/pedido</li>
-            <li>i = Taxa de juros ou custo de manutenção ou custo de armazenagem/estocagem</li>
-            <li>v = Custo/valor unitário</li>
+        <h4 id="subtitulo">Sistemas de Gestão de Produção e Logística</h4>
+        <h1 id="titulo">Lote Econômico de Compra</h1>
+        <h4 id="formulaTitulo">$$LEC = \sqrt{2 * D * cp \over i * v }$$</h4>
+        <ul id="legenda">
+            <li><b>D</b> = Demanda ou consumo médio</li>
+            <li><b>cp</b> = Custo de aquisição/ordem/pedido</li>
+            <li><b>i</b> = Taxa de juros ou custo de manutenção ou custo de armazenagem/estocagem</li>
+            <li><b>v</b> = Custo/valor unitário</li>
         </ul>
         <br>
-        <form>
+        <form onsubmit="calcular(event);">
             <div class="form-row">
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-3">
+                    <label class="vazio">&nbsp;</label><br class="vazio">
+                    <input type="radio" id="DMensal" name="DPeriodo" value="M" checked> <label for="DMensal">Mensal</label>
+                    <input type="radio" id="DAnual" name="DPeriodo" value="A"> <label for="DAnual">Anual</label>
                     <div class="input-group">
-                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Consumo médio">
+                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Demanda ou consumo médio">
                             <span class="input-group-text">D</span>
                         </div>
-                        <input type="text" class="form-control" id="D" value="4500">
+                        <input type="text" class="form-control" id="D" value="4500" data-casas="2" required>
                     </div>
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-3">
+                    <label class="vazio">&nbsp;</label><br class="vazio">
+                    <label class="vazio">&nbsp;</label>
                     <div class="input-group">
                         <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custo de aquisição/ordem/pedido">
-                            <span class="input-group-text">cp</span>
+                            <span class="input-group-text">cp $</span>
                         </div>
-                        <input type="text" class="form-control" id="cp" value="225">
+                        <input type="text" class="form-control" id="cp" value="225" data-casas="2" required>
                     </div>
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-3">
+                    <input type="radio" id="iPorc" name="iValor" value="P" checked> <label for="iPorc">%</label>
+                    <input type="radio" id="iReal" name="iValor" value="R"> <label for="iReal">$</label><br>
+                    <input type="radio" id="iMensal" name="iPeriodo" value="M" checked> <label for="iMensal">Mensal</label>
+                    <input type="radio" id="iAnual" name="iPeriodo" value="A"> <label for="iAnual">Anual</label>
                     <div class="input-group">
                         <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Taxa de juros ou custo de manutenção ou custo de armazenagem/estocagem">
                             <span class="input-group-text">i</span>
                         </div>
-                        <input type="text" class="form-control" id="i" value="0.25">
+                        <input type="text" class="form-control" id="i" value="25" data-casas="3" required>
                     </div>
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-3">
+                    <label class="vazio">&nbsp;</label><br class="vazio">
+                    <label class="vazio">&nbsp;</label>
                     <div class="input-group">
                         <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custo/valor unitário">
-                            <span class="input-group-text">v</span>
+                            <span class="input-group-text">v $</span>
                         </div>
-                        <input type="text" class="form-control" id="v" value="40">
+                        <input type="text" class="form-control" id="v" value="40" data-casas="2" required>
                     </div>
                 </div>
-                <div class="form-group col-md-2" style="text-align: center;">
-                    <button type="button" class="btn btn-primary" onclick="calcular()">Calcular</button>
+            </div>
+            <div class="form-row">
+                <div class="col-md-4">
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-4" style="text-align: center;">
+                    <button id="btCalcular" class="btn btn-primary">Calcular</button>
+                </div>
+                <div class="col-md-4">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-4">
+                </div>
+                <div class="form-group col-md-4">
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <span class="input-group-text">LEC</span>
@@ -84,8 +133,11 @@ require_once __DIR__ . '/php/config.php';
                         <input type="text" class="form-control" id="resultado" disabled>
                     </div>
                 </div>
+                <div class="col-md-4">
+                </div>
             </div>
         </form>
+        <h5 id="formulaResolucao"></h5>
     </div>
 
     <!-- Footer -->
