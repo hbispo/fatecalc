@@ -13,5 +13,21 @@ footer {
     position: absolute;
     bottom: 0;
     width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
     padding-bottom: 20px;
+}
+
+.input-group-text {
+    font-weight: bold;
+}
+
+label:not(:last-child) {
+    margin-right: 10px;
+}
+
+@media (max-width: 767px) {
+    .vazio {
+        display: none;
+    }
 }
