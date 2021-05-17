@@ -29,27 +29,39 @@ function calcular(event = false) {
     }
     let campos = $('form input[type=text]');
     let escopo = {};
-    let formulaResolucao = formulaTex;
+    let formulasTemp = formulas.slice();
     for (let i = 0; i < campos.length; ++i) {
         escopo[campos[i].id] = campos[i].mask.typedValue;
 
         let busca = new RegExp(' ' + campos[i].id + ' ', 'g');
-        formulaResolucao = formulaResolucao.replace(busca, ' ' + campos[i].mask.value + ' ');
+        for (let j = 0; j < formulasTemp.length; ++j) {
+            formulasTemp[j].formulaTex = formulasTemp[j].formulaTex.replace(busca, ' ' + campos[i].mask.value + ' ');
+        }
     }
-    if (typeof preCalcular == 'function') {
-        escopo = preCalcular(escopo);
-    }
-    let resultado = math.evaluate(formula, escopo);
-    if ($('#resultado')[0].getAttribute('data-casas') * 1 == 0) {
-        resultado = parseInt(resultado);
-    }
-    $('#resultado')[0].mask.unmaskedValue = resultado.toString();
+    for (let i = 0; i < formulasTemp.length; ++i) {
+        let resultado = math.evaluate(formulasTemp[i].formula, escopo);
+        if ($('#' + formulasTemp[i].varResultado)[0].getAttribute('data-casas') * 1 == 0) {
+            resultado = parseInt(resultado);
+        }
+        $('#' + formulasTemp[i].varResultado)[0].mask.unmaskedValue = resultado.toString();
 
-    $('#formulaResolucao')[0].innerHTML = '$$' + varResultado + ' = ' + formulaResolucao + ' = ' + $('#resultado')[0].mask.value + ' $$';
-    MathJax.typeset();
+        if ($('#' + formulasTemp[i].varResultado)[0].mask.value != '') {
+            $('#' + formulasTemp[i].varResultado + 'Resolucao')[0].innerHTML = '$$' + formulasTemp[i].varResultado + ' = ' + formulasTemp[i].formulaTex + ' = ' + $('#' + formulasTemp[i].varResultado)[0].mask.value + ' $$';
+            MathJax.typeset();
+        }
+
+        escopo[formulasTemp[i].varResultado] = $('#' + formulasTemp[i].varResultado)[0].mask.typedValue;
+
+        let busca = new RegExp(' ' + formulasTemp[i].varResultado + ' ', 'g');
+        for (let j = i; j < formulasTemp.length; ++j) {
+            formulasTemp[j].formulaTex = formulasTemp[j].formulaTex.replace(busca, ' ' + $('#' + formulasTemp[i].varResultado)[0].mask.value + ' ');
+        }
+    }
 }
 
 function limparFormula() {
-    $('#resultado').val('');
-    $('#formulaResolucao')[0].innerHTML = '';
+    for (let i = 0; i < formulas.length; ++i) {
+        $('#' + formulas[i].varResultado).val('');
+        $('#' + formulas[i].varResultado + 'Resolucao')[0].innerHTML = '';
+    }
 }

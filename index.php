@@ -1,5 +1,51 @@
 <?php
 require_once __DIR__ . '/php/config.php';
+if (!session_id()) {
+    session_start();
+}
+
+$endereco = ($_GET['endereco'] ?? '');
+$titulo = 'FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec';
+
+if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
+    $conexao = mysqli_connect(...Config::banco);
+    if (empty($_SESSION['FateCalc_menu'] ?? [])) {
+        $_SESSION['FateCalc_menu'] = ['Menu'];
+    }
+    if (!empty($endereco)) {
+        $sql = "SELECT * FROM paginas WHERE endereco = '$endereco'";
+        $pagina = mysqli_query($conexao, $sql);
+        if (mysqli_num_rows($pagina)) {
+            $pagina = mysqli_fetch_assoc($pagina);
+            $title = "{$pagina['titulo']} - FateCalc";
+
+            $sql = "SELECT * FROM formulas WHERE idPagina = {$pagina['idPagina']} ORDER BY ordem";
+            $formula = mysqli_query($conexao, $sql);
+            $formulas = [];
+            if (mysqli_num_rows($formula)) {
+                while ($linha = mysqli_fetch_assoc($formula)) {
+                    $formulas[] = $linha;
+                }
+            }
+
+            $sql = "SELECT * FROM variaveis WHERE idPagina = {$pagina['idPagina']} ORDER BY resultado, ordem";
+            $variavel = mysqli_query($conexao, $sql);
+            $variaveis = [];
+            $variaveisResultados = [];
+            if (mysqli_num_rows($variavel)) {
+                while ($linha = mysqli_fetch_assoc($variavel)) {
+                    if ($linha['resultado'] == 1) {
+                        $variaveisResultados[] = $linha;
+                    } else {
+                        $variaveis[] = $linha;
+                    }
+                }
+            }
+        } else {
+            $pagina = false;
+        }
+    }
+}
 ?>
 <!doctype html>
 <html lang="pt">
@@ -26,118 +72,103 @@ require_once __DIR__ . '/php/config.php';
     <!-- IMask JS -->
     <script src="js/imask.js"></script>
 
-    <title>FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec</title>
-    <script id="customScript">
-        var varResultado = 'LEC';
-        var formula = 'sqrt((2 * D * cp) / (i * v))';
-        var formulaTex = '\\sqrt{ 2 * D * cp \\over i * v }';
+    <title><?= $titulo ?></title>
+    <?php if ($pagina) { ?>
+        <script id="customScript">
+            var formulas = <?php echo json_encode($formulas); ?>;
 
-        function preTratamento() {
-            if (document.forms[0].elements.DPeriodo.value != document.forms[0].elements.iPeriodo.value) {
-                if (document.forms[0].elements.iPeriodo.value == 'M') {
-                    $('#D')[0].mask.unmaskedValue = ($('#D')[0].mask.typedValue / 12).toString();
-                } else {
-                    $('#D')[0].mask.unmaskedValue = ($('#D')[0].mask.typedValue * 12).toString();
-                }
-                document.forms[0].elements.DPeriodo.value = document.forms[0].elements.iPeriodo.value;
+            function preTratamento() {
+                <?= $pagina['preTratamento'] ?>
             }
-            if (document.forms[0].elements.iValor.value == 'P') {
-                if ($('#i')[0].mask.typedValue > 1) {
-                    $('#i')[0].mask.unmaskedValue = ($('#i')[0].mask.typedValue / 100).toString();
-                }
-            } else {
-                $('#i')[0].mask.unmaskedValue = ($('#i')[0].mask.typedValue / $('#v')[0].mask.typedValue).toString();
-                document.forms[0].elements.iValor.value = 'P';
-            }
-            return;
-        }
-    </script>
+        </script>
+    <?php } ?>
 </head>
 
 <body>
     <div class="container">
         <br>
-        <h4 id="subtitulo">Sistemas de Gestão de Produção e Logística</h4>
-        <h1 id="titulo">Lote Econômico de Compra</h1>
-        <h4 id="formulaTitulo">$$LEC = \sqrt{2 * D * cp \over i * v }$$</h4>
-        <ul id="legenda">
-            <li><b>D</b> = Demanda ou consumo médio</li>
-            <li><b>cp</b> = Custo de aquisição/ordem/pedido</li>
-            <li><b>i</b> = Taxa de juros ou custo de manutenção ou custo de armazenagem/estocagem</li>
-            <li><b>v</b> = Custo/valor unitário</li>
-        </ul>
-        <br>
-        <form onsubmit="calcular(event);">
-            <div class="form-row">
-                <div class="form-group col-md-3">
-                    <label class="vazio">&nbsp;</label><br class="vazio">
-                    <input type="radio" id="DMensal" name="DPeriodo" value="M" checked> <label for="DMensal">Mensal</label>
-                    <input type="radio" id="DAnual" name="DPeriodo" value="A"> <label for="DAnual">Anual</label>
+        <?php if ($pagina) { ?>
+            <h4 id="subtitulo"><?= $pagina['subtitulo'] ?></h4>
+            <h1 id="titulo"><?= $pagina['titulo'] ?></h1>
+            <?php foreach ($formulas as $formula) { ?>
+                <h4 id="<?= $formula['varResultado'] ?>Formula">$$<?= $formula['varResultado'] ?> = <?= $formula['formulaTex'] ?>$$</h4>
+            <?php } ?>
+            <ul id="legenda">
+                <?php foreach ($variaveis as $variavel) { ?>
+                    <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
+                <?php } ?>
+            </ul>
+            <br>
+            <form onsubmit="calcular(event);">
+                <div class="form-row">
+                    <?php
+                    $larguraLinha = 0;
+                    foreach ($variaveis as $variavel) {
+                        if ($larguraLinha + $variavel['largura'] > 12) {
+                            $larguraLinha = 0;
+                    ?>
+                </div>
+                <div class="form-row">
+                <?php } ?>
+                <div class="form-group col-md-<?= $variavel['largura'] ?>">
+                    <?php if ($variavel['tipoValor'] == 0) { ?>
+                        <label class="vazio">&nbsp;</label><br class="vazio">
+                    <?php } ?>
+                    <?php if ($variavel['periodo'] == 0) { ?>
+                        <label class="vazio">&nbsp;</label><br class="vazio">
+                    <?php } ?>
+                    <?php if ($variavel['tipoValor'] == 1) { ?>
+                        <input type="radio" id="<?= $variavel['variavel'] ?>Porc" name="<?= $variavel['variavel'] ?>Valor" value="P" <?= ($variavel['tipoValorPadrao'] == 'P' ? 'checked' : '') ?>> <label for="<?= $variavel['variavel'] ?>Porc">%</label>
+                        <input type="radio" id="<?= $variavel['variavel'] ?>Real" name="<?= $variavel['variavel'] ?>Valor" value="R" <?= ($variavel['tipoValorPadrao'] == 'R' ? 'checked' : '') ?>> <label for="<?= $variavel['variavel'] ?>Real">$</label><br>
+                    <?php } ?>
+                    <?php if ($variavel['periodo'] == 1) { ?>
+                        <input type="radio" id="<?= $variavel['variavel'] ?>Mensal" name="<?= $variavel['variavel'] ?>Periodo" value="M" <?= ($variavel['periodoPadrao'] == 'M' ? 'checked' : '') ?>> <label for="<?= $variavel['variavel'] ?>Mensal">Mensal</label>
+                        <input type="radio" id="<?= $variavel['variavel'] ?>Anual" name="<?= $variavel['variavel'] ?>Periodo" value="A" <?= ($variavel['periodoPadrao'] == 'A' ? 'checked' : '') ?>> <label for="<?= $variavel['variavel'] ?>Anual">Anual</label>
+                    <?php } ?>
                     <div class="input-group">
-                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Demanda ou consumo médio">
-                            <span class="input-group-text">D</span>
+                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $variavel['descricao'] ?>">
+                            <span class="input-group-text"><?= $variavel['variavel'] . ($variavel['monetario'] ? ' $' : '') ?></span>
                         </div>
-                        <input type="text" class="form-control" id="D" value="4500" data-casas="2" required>
+                        <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>">
                     </div>
                 </div>
-                <div class="form-group col-md-3">
-                    <label class="vazio">&nbsp;</label><br class="vazio">
-                    <label class="vazio">&nbsp;</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custo de aquisição/ordem/pedido">
-                            <span class="input-group-text">cp $</span>
-                        </div>
-                        <input type="text" class="form-control" id="cp" value="225" data-casas="2" required>
+            <?php
+                        $larguraLinha += $variavel['largura'];
+                    }
+            ?>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-4">
+                    </div>
+                    <div class="form-group col-md-4" style="text-align: center;">
+                        <button id="btCalcular" class="btn btn-primary">Calcular</button>
+                    </div>
+                    <div class="col-md-4">
                     </div>
                 </div>
-                <div class="form-group col-md-3">
-                    <input type="radio" id="iPorc" name="iValor" value="P" checked> <label for="iPorc">%</label>
-                    <input type="radio" id="iReal" name="iValor" value="R"> <label for="iReal">$</label><br>
-                    <input type="radio" id="iMensal" name="iPeriodo" value="M" checked> <label for="iMensal">Mensal</label>
-                    <input type="radio" id="iAnual" name="iPeriodo" value="A"> <label for="iAnual">Anual</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Taxa de juros ou custo de manutenção ou custo de armazenagem/estocagem">
-                            <span class="input-group-text">i</span>
+                <?php foreach ($variaveisResultados as $variavel) { ?>
+                    <h5 id="<?= $variavel['variavel'] ?>Resolucao"></h5>
+                    <div class="form-row">
+                        <?php if (floor((12 - $variavel['largura']) / 2)) { ?>
+                            <div class="col-md-<?= floor((12 - $variavel['largura']) / 2) ?>">
+                            </div>
+                        <?php } ?>
+                        <div class="form-group col-md-<?= $variavel['largura'] ?>">
+                            <div class="input-group">
+                                <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $variavel['descricao'] ?>">
+                                    <span class="input-group-text"><?= $variavel['variavelLabel'] ?></span>
+                                </div>
+                                <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>" disabled>
+                            </div>
                         </div>
-                        <input type="text" class="form-control" id="i" value="25" data-casas="3" required>
+                        <?php if (ceil((12 - $variavel['largura']) / 2)) { ?>
+                            <div class="col-md-<?= ceil((12 - $variavel['largura']) / 2) ?>">
+                            </div>
+                        <?php } ?>
                     </div>
-                </div>
-                <div class="form-group col-md-3">
-                    <label class="vazio">&nbsp;</label><br class="vazio">
-                    <label class="vazio">&nbsp;</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custo/valor unitário">
-                            <span class="input-group-text">v $</span>
-                        </div>
-                        <input type="text" class="form-control" id="v" value="40" data-casas="2" required>
-                    </div>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="col-md-4">
-                </div>
-                <div class="form-group col-md-4" style="text-align: center;">
-                    <button id="btCalcular" class="btn btn-primary">Calcular</button>
-                </div>
-                <div class="col-md-4">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="col-md-4">
-                </div>
-                <div class="form-group col-md-4">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">LEC</span>
-                        </div>
-                        <input type="text" class="form-control" id="resultado" disabled>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                </div>
-            </div>
-        </form>
-        <h5 id="formulaResolucao"></h5>
+                <?php } ?>
+            </form>
+        <?php } ?>
     </div>
 
     <!-- Footer -->
