@@ -5,12 +5,37 @@ if (!session_id()) {
 }
 
 $endereco = ($_GET['endereco'] ?? '');
-$titulo = 'FateCalc - Calculadora para autocorreção de exercícios matemáticos da Fatec';
+$titulo = 'FateCalc - Calculadora para autocorreção';
+$pagina = false;
 
 if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
     $conexao = mysqli_connect(...Config::banco);
     if (empty($_SESSION['FateCalc_menu'] ?? [])) {
-        $_SESSION['FateCalc_menu'] = ['Menu'];
+        $sql = "SELECT m.idMenu, m.menu, m.icone, IFNULL(p.endereco, m.url) AS link FROM menus AS m
+                LEFT JOIN paginas AS p ON p.idPagina = m.idPagina
+                WHERE m.idMenuPai = 0
+                ORDER BY m.ordem, m.menu";
+        $menu = mysqli_query($conexao, $sql);
+        $menus = [];
+        if (mysqli_num_rows($menu)) {
+            while ($linha = mysqli_fetch_assoc($menu)) {
+                $sql = "SELECT m.idMenu, m.menu, m.icone, IFNULL(p.endereco, m.url) AS link FROM menus AS m
+                        LEFT JOIN paginas AS p ON p.idPagina = m.idPagina
+                        WHERE m.idMenuPai = {$linha['idMenu']}
+                        ORDER BY m.ordem, m.menu";
+                $submenu = mysqli_query($conexao, $sql);
+                $submenus = [];
+                if (mysqli_num_rows($submenu)) {
+                    while ($linha2 = mysqli_fetch_assoc($submenu)) {
+                        $submenus[] = $linha2;
+                    }
+                }
+                $linha['submenus'] = $submenus;
+                $menus[] = $linha;
+            }
+        }
+
+        $_SESSION['FateCalc_menu'] = $menus;
     }
     if (!empty($endereco)) {
         $sql = "SELECT * FROM paginas WHERE endereco = '$endereco'";
@@ -85,6 +110,40 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
 </head>
 
 <body>
+    <nav class='navbar fixed-top navbar-expand-lg navbar-light bg-light'>
+        <a class='navbar-brand' href='./'>FateCalc</a>
+        <button class='navbar-toggler' type='button' data-toggle='collapse' data-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation'>
+            <span class='navbar-toggler-icon'></span>
+        </button>
+
+        <div class='collapse navbar-collapse' id='navbarSupportedContent'>
+            <ul class='navbar-nav mr-auto'>
+                <?php
+                foreach ($_SESSION['FateCalc_menu'] as $menu) {
+                    if (empty($menu['submenus'])) {
+                ?>
+                        <li class='nav-item'>
+                            <a class='nav-link' href='<?= $menu['link'] ?>'><?= (empty($menu['icone']) ? '' :  "<i class='fas fa-{$menu['icone']}'></i> ") . $menu['menu'] ?></a>
+                        </li>
+                    <?php } else { ?>
+                        <li class='nav-item dropdown'>
+                            <a class='nav-link dropdown-toggle' id='navbarDropdown' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+                                <?= (empty($menu['icone']) ? '' :  "<i class='fas fa-{$menu['icone']}'></i> ") . $menu['menu'] ?>
+                            </a>
+                            <div class='dropdown-menu' aria-labelledby='navbarDropdown'>
+                                <?php foreach ($menu['submenus'] as $submenu) { ?>
+                                    <a class='dropdown-item' href='<?= $submenu['link'] ?>'><?= (empty($submenu['icone']) ? '' :  "<i class='fas fa-{$submenu['icone']}'></i> ") . $submenu['menu'] ?></a>
+                                <?php } ?>
+                            </div>
+                        </li>
+                <?php
+                    }
+                }
+                ?>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container">
         <br>
         <?php if ($pagina) { ?>
