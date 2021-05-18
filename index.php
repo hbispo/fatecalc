@@ -186,7 +186,7 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                     <?php } ?>
                     <div class="input-group">
                         <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $variavel['descricao'] ?>">
-                            <span class="input-group-text"><?= $variavel['variavel'] . ($variavel['monetario'] ? ' $' : '') ?></span>
+                            <span class="input-group-text"><?= $variavel['variavelLabel'] . ($variavel['monetario'] ? ' $' : '') ?></span>
                         </div>
                         <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>">
                     </div>
@@ -215,9 +215,9 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                         <div class="form-group col-md-<?= $variavel['largura'] ?>">
                             <div class="input-group">
                                 <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $variavel['descricao'] ?>">
-                                    <span class="input-group-text"><?= $variavel['variavelLabel'] ?></span>
+                                    <span class="input-group-text"><?= $variavel['variavelLabel'] . ($variavel['monetario'] ? ' $' : '') ?></span>
                                 </div>
-                                <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>" disabled>
+                                <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>" disabled>
                             </div>
                         </div>
                         <?php if (ceil((12 - $variavel['largura']) / 2)) { ?>
