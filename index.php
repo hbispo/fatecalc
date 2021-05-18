@@ -156,6 +156,10 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                 <?php foreach ($variaveis as $variavel) { ?>
                     <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
                 <?php } ?>
+                <br>
+                <?php foreach ($variaveisResultados as $variavel) { ?>
+                    <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
+                <?php } ?>
             </ul>
             <br>
             <form onsubmit="calcular(event);">
