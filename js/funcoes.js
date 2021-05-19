@@ -29,7 +29,7 @@ function calcular(event = false) {
     }
     let campos = $('form input[type=text]');
     let escopo = {};
-    let formulasTemp = formulas.slice();
+    let formulasTemp = JSON.parse(JSON.stringify(formulas));
     for (let i = 0; i < campos.length; ++i) {
         escopo[campos[i].id] = campos[i].mask.typedValue;
         let valorMensal = campos[i].mask.typedValue;
@@ -86,7 +86,7 @@ function calcular(event = false) {
 
 function limparFormula() {
     for (let i = 0; i < formulas.length; ++i) {
-        $('#' + formulas[i].varResultado).val('');
+        $('#' + formulas[i].varResultado)[0].mask.unmaskedValue = '';
         $('#' + formulas[i].varResultado + 'Resolucao')[0].innerHTML = '';
     }
 }
