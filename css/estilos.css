@@ -31,3 +31,7 @@ label:not(:last-child) {
         display: none;
     }
 }
+
+.formulaRolagem {
+    overflow: auto;
+}

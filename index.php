@@ -91,6 +91,13 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
     <!-- Font Awesome JS -->
     <script src="fontawesome/js/all.min.js"></script>
 
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            "HTML-CSS": { linebreaks: { automatic: true } },
+            SVG: { linebreaks: { automatic: true } }
+        });
+    </script>
+
     <!-- MathJax JS -->
     <script src="node_modules/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
 
@@ -150,7 +157,7 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
             <h4 id="subtitulo"><?= $pagina['subtitulo'] ?></h4>
             <h1 id="titulo"><?= $pagina['titulo'] ?></h1>
             <?php foreach ($formulas as $formula) { ?>
-                <h4 id="<?= $formula['varResultado'] ?>Formula">$$<?= $formula['varResultado'] ?> = <?= $formula['formulaTex'] ?>$$</h4>
+                <h4 class="formulaRolagem" id="<?= $formula['varResultado'] ?>Formula">$$<?= $formula['varResultadoTex'] ?> = <?= $formula['formulaTex'] ?>$$</h4>
             <?php } ?>
             <ul id="legenda">
                 <?php foreach ($variaveis as $variavel) { ?>
@@ -192,7 +199,7 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                         <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $variavel['descricao'] ?>">
                             <span class="input-group-text"><?= $variavel['variavelLabel'] . ($variavel['monetario'] ? ' $' : '') ?></span>
                         </div>
-                        <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>">
+                        <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-monetario="<?= $variavel['monetario'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>">
                     </div>
                 </div>
             <?php
@@ -210,7 +217,7 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                     </div>
                 </div>
                 <?php foreach ($variaveisResultados as $variavel) { ?>
-                    <h5 id="<?= $variavel['variavel'] ?>Resolucao"></h5>
+                    <h5 class="formulaRolagem" id="<?= $variavel['variavel'] ?>Resolucao"></h5>
                     <div class="form-row">
                         <?php if (floor((12 - $variavel['largura']) / 2)) { ?>
                             <div class="col-md-<?= floor((12 - $variavel['largura']) / 2) ?>">
@@ -221,7 +228,7 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                                 <div class="input-group-prepend" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $variavel['descricao'] ?>">
                                     <span class="input-group-text"><?= $variavel['variavelLabel'] . ($variavel['monetario'] ? ' $' : '') ?></span>
                                 </div>
-                                <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>" disabled>
+                                <input type="text" class="form-control" id="<?= $variavel['variavel'] ?>" data-monetario="<?= $variavel['monetario'] ?>" data-casas="<?= $variavel['casas'] ?>" data-variavelTex="<?= $variavel['variavelTex'] ?>" disabled>
                             </div>
                         </div>
                         <?php if (ceil((12 - $variavel['largura']) / 2)) { ?>

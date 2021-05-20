@@ -6,6 +6,8 @@ window.onload = function () {
                 mask: Number,
                 scale: inputs[i].getAttribute('data-casas') * 1,
                 signed: (inputs[i].getAttribute('data-negativo') == 1),
+                thousandsSeparator: (inputs[i].getAttribute('data-monetario') == 1 ? '.' : ''),
+                padFractionalZeros: (inputs[i].getAttribute('data-monetario') == 1),
                 mapToRadix: []
             });
             inputs[i].addEventListener('input', limparFormula);
@@ -47,12 +49,12 @@ function calcular(event = false) {
         }
 
         if (campos[i].mask.value != '') {
-            let busca = new RegExp(' ' + campos[i].id + ' ', 'g');
+            let busca = new RegExp(' ' + escapeRegExp(campos[i].getAttribute('data-variaveltex')) + ' ', 'g');
             let buscaMensal;
             let buscaAnual;
             if (campoPeriodo) {
-                buscaMensal = new RegExp(' ' + campos[i].id + '\_\{mensal\} ', 'g');
-                buscaAnual = new RegExp(' ' + campos[i].id + '\_\{anual\} ', 'g');
+                buscaMensal = new RegExp(' ' + escapeRegExp(campos[i].getAttribute('data-variaveltex')) + '\_\{mensal\} ', 'g');
+                buscaAnual = new RegExp(' ' + escapeRegExp(campos[i].getAttribute('data-variaveltex')) + '\_\{anual\} ', 'g');
             }
             for (let j = 0; j < formulasTemp.length; ++j) {
                 formulasTemp[j].formulaTex = formulasTemp[j].formulaTex.replace(busca, ' ' + campos[i].mask.value + ' ');
@@ -71,13 +73,13 @@ function calcular(event = false) {
         $('#' + formulasTemp[i].varResultado)[0].mask.unmaskedValue = resultado.toString();
 
         if ($('#' + formulasTemp[i].varResultado)[0].mask.value != '') {
-            $('#' + formulasTemp[i].varResultado + 'Resolucao')[0].innerHTML = '$$' + formulasTemp[i].varResultado + ' = ' + formulasTemp[i].formulaTex + ' = ' + $('#' + formulasTemp[i].varResultado)[0].mask.value + ' $$';
+            $('#' + formulasTemp[i].varResultado + 'Resolucao')[0].innerHTML = '$$' + formulasTemp[i].varResultadoTex + ' = ' + formulasTemp[i].formulaTex + ' = ' + $('#' + formulasTemp[i].varResultado)[0].mask.value + ' $$';
             MathJax.typeset();
         }
 
         escopo[formulasTemp[i].varResultado] = $('#' + formulasTemp[i].varResultado)[0].mask.typedValue;
 
-        let busca = new RegExp(' ' + formulasTemp[i].varResultado + ' ', 'g');
+        let busca = new RegExp(' ' + escapeRegExp(formulasTemp[i].varResultadoTex) + ' ', 'g');
         for (let j = i; j < formulasTemp.length; ++j) {
             formulasTemp[j].formulaTex = formulasTemp[j].formulaTex.replace(busca, ' ' + $('#' + formulasTemp[i].varResultado)[0].mask.value + ' ');
         }
@@ -89,4 +91,8 @@ function limparFormula() {
         $('#' + formulas[i].varResultado)[0].mask.unmaskedValue = '';
         $('#' + formulas[i].varResultado + 'Resolucao')[0].innerHTML = '';
     }
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
