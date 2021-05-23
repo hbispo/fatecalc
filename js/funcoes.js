@@ -69,6 +69,9 @@ function calcular(event = false) {
         let resultado = math.evaluate(formulasTemp[i].formula, escopo);
         if ($('#' + formulasTemp[i].varResultado)[0].getAttribute('data-casas') * 1 == 0) {
             resultado = parseInt(resultado);
+        } else {
+            let multiplicador = Math.pow(10, $('#' + formulasTemp[i].varResultado)[0].getAttribute('data-casas') * 1);
+            resultado = Math.round((resultado + Number.EPSILON) * multiplicador) / multiplicador;
         }
         $('#' + formulasTemp[i].varResultado)[0].mask.unmaskedValue = resultado.toString();
 
