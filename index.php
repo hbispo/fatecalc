@@ -156,7 +156,9 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
         <?php if ($pagina) { ?>
             <h4 id="subtitulo"><?= $pagina['subtitulo'] ?></h4>
             <h1 id="titulo"><?= $pagina['titulo'] ?></h1>
-            <?php foreach ($formulas as $formula) { ?>
+            <?php
+            echo (empty($pagina['texto']) ? "" : "<br>{$pagina['texto']}");
+            foreach ($formulas as $formula) { ?>
                 <h4 class="formulaRolagem" id="<?= $formula['varResultado'] ?>Formula">$$<?= $formula['varResultadoTex'] ?> = <?= $formula['formulaTex'] ?>$$</h4>
             <?php } ?>
             <ul id="legenda">
