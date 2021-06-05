@@ -245,7 +245,7 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
 
     <!-- Footer -->
     <!-- Copyright -->
-    <?= Config::rodape(); ?>
+    <?= Config::rodape ?>
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
     <script src="js/jquery-3.5.1.slim.min.js"></script>
