@@ -57,8 +57,20 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
             $variavel = mysqli_query($conexao, $sql);
             $variaveis = [];
             $variaveisResultados = [];
+            $legenda = false;
+            $periodo = false;
+            $tipoValor = false;
             if (mysqli_num_rows($variavel)) {
                 while ($linha = mysqli_fetch_assoc($variavel)) {
+                    if (!empty($linha['descricao'])) {
+                        $legenda = true;
+                    }
+                    if ($linha['periodo'] == 1) {
+                        $periodo = true;
+                    }
+                    if ($linha['tipoValor'] == 1) {
+                        $tipoValor = true;
+                    }
                     if ($linha['resultado'] == 1) {
                         $variaveisResultados[] = $linha;
                     } else {
@@ -160,17 +172,31 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
             echo (empty($pagina['texto']) ? "" : "<br>{$pagina['texto']}");
             foreach ($formulas as $formula) { ?>
                 <h4 class="formulaRolagem" id="<?= $formula['varResultado'] ?>Formula">$$<?= $formula['varResultadoTex'] ?> = <?= $formula['formulaTex'] ?>$$</h4>
-            <?php } ?>
-            <ul id="legenda">
-                <?php foreach ($variaveis as $variavel) { ?>
-                    <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
-                <?php } ?>
+            <?php
+            }
+            if ($legenda) {
+            ?>
+                <ul id="legenda">
+                    <?php
+                    foreach ($variaveis as $variavel) {
+                        if (!empty($variavel['descricao'])) { ?>
+                            <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
+                    <?php
+                        }
+                    }
+                    ?>
+                    <br>
+                    <?php
+                    foreach ($variaveisResultados as $variavel) {
+                        if (!empty($variavel['descricao'])) { ?>
+                            <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
+                    <?php
+                        }
+                    }
+                    ?>
+                </ul>
                 <br>
-                <?php foreach ($variaveisResultados as $variavel) { ?>
-                    <li><b><?= $variavel['variavelLabel'] ?></b> = <?= $variavel['descricao'] ?></li>
-                <?php } ?>
-            </ul>
-            <br>
+            <?php } ?>
             <form onsubmit="calcular(event);">
                 <div class="form-row">
                     <?php
@@ -183,10 +209,10 @@ if (!empty($endereco) || empty($_SESSION['FateCalc_menu'] ?? [])) {
                 <div class="form-row">
                 <?php } ?>
                 <div class="form-group col-md-<?= $variavel['largura'] ?>">
-                    <?php if ($variavel['tipoValor'] == 0) { ?>
+                    <?php if ($variavel['tipoValor'] == 0 && $tipoValor) { ?>
                         <label class="vazio">&nbsp;</label><br class="vazio">
                     <?php } ?>
-                    <?php if ($variavel['periodo'] == 0) { ?>
+                    <?php if ($variavel['periodo'] == 0 && $periodo) { ?>
                         <label class="vazio">&nbsp;</label><br class="vazio">
                     <?php } ?>
                     <?php if ($variavel['tipoValor'] == 1) { ?>
